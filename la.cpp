@@ -16,14 +16,14 @@ enum class TokenType {
 };
 
 // Struct to represent a token with its type and value
-struct Token { 
+struct Token {
     TokenType type;
     string value;
 
     Token(TokenType type, string value) : type(type), value(value) {}
 };
 
-class LexicalAnalyzer { 
+class LexicalAnalyzer {
     unordered_map<string, TokenType> keywords;
     vector<Token> tokens;
 
@@ -50,15 +50,20 @@ public:
             }
             if (keywords.find(token) != keywords.end()) {
                 addToken(TokenType::KEYWORD, token);
-            } else if (isValidIntegerLiteral(token)) {
+            }
+            else if (isValidIntegerLiteral(token)) {
                 addToken(TokenType::INTEGER_LITERAL, token);
-            } else if (isValidFloatLiteral(token)) {
+            }
+            else if (isValidFloatLiteral(token)) {
                 addToken(TokenType::FLOAT_LITERAL, token);
-            } else if (isOperator(token[0])) {
+            }
+            else if (isOperator(token[0])) {
                 addToken(TokenType::OPERATOR, token);
-            } else if (isPunctuator(token[0])) {
+            }
+            else if (isPunctuator(token[0])) {
                 addToken(TokenType::PUNCTUATOR, token);
-            } else {
+            }
+            else {
                 addToken(TokenType::IDENTIFIER, token);
             }
         }
@@ -70,27 +75,27 @@ public:
         for (Token token : tokens) {
             string type;
             switch (token.type) {
-                case TokenType::KEYWORD:
-                    type = "KEYWORD";
-                    break;
-                case TokenType::IDENTIFIER:
-                    type = "IDENTIFIER";
-                    break;
-                case TokenType::INTEGER_LITERAL:
-                    type = "INTEGER_LITERAL";
-                    break;
-                case TokenType::FLOAT_LITERAL:
-                    type = "FLOAT_LITERAL";
-                    break;
-                case TokenType::OPERATOR:
-                    type = "OPERATOR";
-                    break;
-                case TokenType::PUNCTUATOR:
-                    type = "PUNCTUATOR";
-                    break;
-                default:
-                    type = "UNKNOWN";
-                    break;
+            case TokenType::KEYWORD:
+                type = "KEYWORD";
+                break;
+            case TokenType::IDENTIFIER:
+                type = "IDENTIFIER";
+                break;
+            case TokenType::INTEGER_LITERAL:
+                type = "INTEGER_LITERAL";
+                break;
+            case TokenType::FLOAT_LITERAL:
+                type = "FLOAT_LITERAL";
+                break;
+            case TokenType::OPERATOR:
+                type = "OPERATOR";
+                break;
+            case TokenType::PUNCTUATOR:
+                type = "PUNCTUATOR";
+                break;
+            default:
+                type = "UNKNOWN";
+                break;
             }
             cout << "<" << type << ", " << token.value << ">" << endl;
         }
@@ -102,7 +107,7 @@ public:
 
 
 
-    private:
+private:
     // Function to check if a character is an operator
     bool isOperator(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
@@ -151,7 +156,8 @@ public:
                     return false;
                 }
                 pointSeen = true;
-            } else if (!isDigit(c)) {
+            }
+            else if (!isDigit(c)) {
                 return false;
             }
         }
@@ -162,8 +168,40 @@ public:
     void addToken(TokenType type, string value) {
         tokens.push_back(Token(type, value));
     }
+    // Function to check if the current position starts a comment
+    bool isCommentStart(char current, char next) {
+        return (current == '/' && (next == '/' || next == '*'));
+    }
+
+    // Function to handle comments in the input string
+    void handleComment(string input, int& pos) {
+        if (input[pos] == '/' && input[pos + 1] == '/') {
+            pos += 2;
+            while (pos < input.size() && input[pos] != '\n') {
+                pos++;
+            }
+        } else if (input[pos] == '/' && input[pos + 1] == '*') {
+            pos += 2;
+            while (pos < input.size() && !(input[pos] == '*' && input[pos + 1] == '/')) {
+                pos++;
+            }
+            pos += 2;
+        }
+    }
+
+    // Function to handle string literals in the input string
+    string handleStringLiteral(string input, int& pos) {
+        string token = "";
+        pos++; // Skip the opening quote
+        while (pos < input.size() && input[pos] != '"') {
+            token += input[pos++];
+        }
+        pos++; // Skip the closing quote
+        return token;
+    }
+
     // Function to get the next token from the input string
-    string getNextToken(string input, int &pos) {
+    string getNextToken(string input, int& pos) {
         string token = "";
         while (pos < input.size() && isWhiteSpace(input[pos])) {
             pos++;
@@ -171,14 +209,26 @@ public:
         if (pos == input.size()) {
             return token;
         }
+
+        if (isCommentStart(input[pos], input[pos + 1])) {
+            handleComment(input, pos);
+            return getNextToken(input, pos);
+        }
+
+        if (input[pos] == '"') {
+            return handleStringLiteral(input, pos);
+        }
+
         if (isOperator(input[pos])) {
             token += input[pos++];
             while (pos < input.size() && isOperator(input[pos])) {
                 token += input[pos++];
             }
-        } else if (isPunctuator(input[pos])) {
+        }
+        else if (isPunctuator(input[pos])) {
             token += input[pos++];
-        } else if (isDigit(input[pos])) {
+        }
+        else if (isDigit(input[pos])) {
             while (pos < input.size() && isDigit(input[pos])) {
                 token += input[pos++];
             }
@@ -188,15 +238,17 @@ public:
                     token += input[pos++];
                 }
             }
-        } else if (isLetter(input[pos])) {
+        }
+        else if (isLetter(input[pos])) {
             while (pos < input.size() && isValidIdentifierChar(input[pos])) {
                 token += input[pos++];
             }
-        } else {
+        }
+        else {
             token += input[pos++];
         }
         return token;
     }
-    
+
 
 };
