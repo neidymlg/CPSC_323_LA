@@ -1,3 +1,4 @@
+#include <string>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -113,9 +114,9 @@ private:
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
     }
     // Function to check if a character is a whitespace character
-    bool isWhiteSpace(char c) {
-        return c == ' ' || c == '\t' || c == '\n';
-    }
+    // bool isWhiteSpace(char c) {
+    //     return c == ' ' || c == '\t' || c == '\n';
+    // }
 
     // check if the character is a punctuator
     bool isPunctuator(char c) {
@@ -180,7 +181,8 @@ private:
             while (pos < input.size() && input[pos] != '\n') {
                 pos++;
             }
-        } else if (input[pos] == '/' && input[pos + 1] == '*') {
+        }
+        else if (input[pos] == '/' && input[pos + 1] == '*') {
             pos += 2;
             while (pos < input.size() && !(input[pos] == '*' && input[pos + 1] == '/')) {
                 pos++;
@@ -192,20 +194,20 @@ private:
     // Function to handle string literals in the input string
     string handleStringLiteral(string input, int& pos) {
         string token = "";
-        pos++; // Skip the opening quote
+        pos++;
         while (pos < input.size() && input[pos] != '"') {
             token += input[pos++];
         }
-        pos++; // Skip the closing quote
+        pos++;
         return token;
     }
 
     // Function to get the next token from the input string
     string getNextToken(string input, int& pos) {
         string token = "";
-        while (pos < input.size() && isWhiteSpace(input[pos])) {
-            pos++;
-        }
+        // while (pos < input.size() && isWhiteSpace(input[pos])) {
+        //     pos++;
+        // }
         if (pos == input.size()) {
             return token;
         }
