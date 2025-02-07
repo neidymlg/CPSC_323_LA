@@ -9,10 +9,10 @@ using namespace std;
 enum class TokenType {
     KEYWORD,
     IDENTIFIER,
-    INTEGER_LITERAL,
-    FLOAT_LITERAL,
+    INTEGER,
+    REAL,
     OPERATOR,
-    PUNCTUATOR,
+    SEPARATOR,
     UNKNOWN
 };
 
@@ -31,15 +31,19 @@ class LexicalAnalyzer {
 public:
     // Constructor to initialize the keywords
     LexicalAnalyzer() {
-        keywords["int"] = TokenType::KEYWORD;
-        keywords["float"] = TokenType::KEYWORD;
-        keywords["char"] = TokenType::KEYWORD;
+        keywords["integer"] = TokenType::KEYWORD;
+        keywords["real"] = TokenType::KEYWORD;
         keywords["if"] = TokenType::KEYWORD;
         keywords["else"] = TokenType::KEYWORD;
+        keywords["endif"] = TokenType::KEYWORD;
         keywords["while"] = TokenType::KEYWORD;
-        keywords["do"] = TokenType::KEYWORD;
-        keywords["for"] = TokenType::KEYWORD;
-        keywords["return"] = TokenType::KEYWORD;
+        keywords["endwhile"] = TokenType::KEYWORD;
+        keywords["scan"] = TokenType::KEYWORD;
+        keywords["print"] = TokenType::KEYWORD;
+        keywords["function"] = TokenType::KEYWORD;
+        keywords["boolean"] = TokenType::KEYWORD;
+        keywords["true"] = TokenType::KEYWORD;
+        keywords["false"] = TokenType::KEYWORD;
     }
 
     vector<Token> analyze(string input) {
