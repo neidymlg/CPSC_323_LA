@@ -47,27 +47,27 @@ public:
     }
 
     vector<Token> analyze(string input) {
-        int pos = 0;
-        while (pos < input.size()) {
-            string token = getNextToken(input, pos);
-            if (token.empty()) {
-                break;
-            }
-            if (keywords.find(token) != keywords.end()) {
-                addToken(TokenType::KEYWORD, token);
-            }
-            else if (isValidIntegerLiteral(token)) {
-                addToken(TokenType::INTEGER_LITERAL, token);
-            }
+        // int pos = 0;
+        // while (pos < input.size()) {
+        //     string token = getNextToken(input, pos);
+        //     if (token.empty()) {
+        //         break;
+        //     }
+            // if (keywords.find(token) != keywords.end()) {
+            //     addToken(TokenType::KEYWORD, token);
+            // }
+            // else if (isValidIntegerLiteral(token)) {
+            //     addToken(TokenType::INTEGER_LITERAL, token);
+            // }
             else if (isValidFloatLiteral(token)) {
                 addToken(TokenType::FLOAT_LITERAL, token);
             }
-            else if (isOperator(token[0])) {
-                addToken(TokenType::OPERATOR, token);
-            }
-            else if (isPunctuator(token[0])) {
-                addToken(TokenType::PUNCTUATOR, token);
-            }
+            // else if (isOperator(token[0])) {
+            //     addToken(TokenType::OPERATOR, token);
+            // }
+            // else if (isPunctuator(token[0])) {
+            //     addToken(TokenType::PUNCTUATOR, token);
+            // }
             else {
                 addToken(TokenType::IDENTIFIER, token);
             }
@@ -114,43 +114,43 @@ public:
 
 private:
     // Function to check if a character is an operator
-    bool isOperator(char c) {
-        return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
-    }
+    // bool isOperator(char c) {
+    //     return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
+    // }
     // Function to check if a character is a whitespace character
     // bool isWhiteSpace(char c) {
     //     return c == ' ' || c == '\t' || c == '\n';
     // }
 
     // check if the character is a punctuator
-    bool isPunctuator(char c) {
-        return c == ';' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}';
-    }
+    // bool isPunctuator(char c) {
+    //     return c == ';' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}';
+    // }
 
     // Function to check if a character is a digit
-    bool isDigit(char c) {
-        return c >= '0' && c <= '9';
-    }
+    // bool isDigit(char c) {
+    //     return c >= '0' && c <= '9';
+    // }
 
     // Function to check if a character is a letter
-    bool isLetter(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-    }
+    // bool isLetter(char c) {
+    //     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    // }
 
     // Function to check if a character is a valid identifier character
-    bool isValidIdentifierChar(char c) {
-        return isLetter(c) || isDigit(c) || c == '_';
-    }
+    // bool isValidIdentifierChar(char c) {
+    //     return isLetter(c) || isDigit(c) || c == '_';
+    // }
 
     // Function to check if a string is a valid integer literal
-    bool isValidIntegerLiteral(string str) {
-        for (char c : str) {
-            if (!isDigit(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
+    // bool isValidIntegerLiteral(string str) {
+    //     for (char c : str) {
+    //         if (!isDigit(c)) {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
 
     // Function to check if a string is a valid float literal
     bool isValidFloatLiteral(string str) {
@@ -170,9 +170,9 @@ private:
     }
 
     // Function to add a token to the list of tokens
-    void addToken(TokenType type, string value) {
-        tokens.push_back(Token(type, value));
-    }
+    // void addToken(TokenType type, string value) {
+    //     tokens.push_back(Token(type, value));
+    // }
     // Function to check if the current position starts a comment
     bool isCommentStart(char current, char next) {
         return (current == '/' && (next == '/' || next == '*'));
