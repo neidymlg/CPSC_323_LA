@@ -23,12 +23,29 @@ int main() {
         Token parsedToken = lexer(line);
 
         std::cout << parsedToken.value << "\t\t" << parsedToken.type << std::endl;
+        std::cout << parsedToken << std::endl;
+
         //call lexer for a token
         //print:
         //      token 
         //      lexeme
-    }
 
+
+        
+    }
+    LexicalAnalyzer la;
+    ifstream inputFile("LA_input_1.txt");
+    string input;   
+
+    while(inputFile >> input){
+        la.analyze(input);
+    }
+    
+    inputFile.close();
+    
+    la.printTokens();
+    
     sourceCodeFile.close();
+
     return 0;
 }
