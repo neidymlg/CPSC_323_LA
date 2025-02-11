@@ -1,6 +1,6 @@
 
 make:
-	gcc -o la la.cpp -lm
+	g++ -o la la.cpp main.cpp -std=c++17
 
 clean:
 	rm la
