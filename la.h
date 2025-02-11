@@ -12,13 +12,13 @@
 using namespace std;
 
 enum class TokenType {
-    KEYWORD,
-    IDENTIFIER,
-    INTEGER,
-    OPERATOR,
-    PUNCTUATOR,
-    SEQUENCE,
-    UNKNOWN
+    KEYWORD, //complete
+    IDENTIFIER, //complete
+    INTEGER, //complete
+    REAL,
+    OPERATOR, //complete
+    SEPARATOR, //complete
+    UNKNOWN //complete
 };
 
 struct Token {
@@ -34,9 +34,13 @@ class LexicalAnalyzer {
 
 public:
     LexicalAnalyzer();
-    vector<Token> analyze(string input);
+    void setInput(string input);
+    void analyze(const string& token);
+
+    
+    Token getNextToken(string input, int& pos);
+    bool hasMoreTokens(string input, int pos);
     void printTokens();
-    vector<Token> tokenize(string input);
 
 private:
     bool isOperator(char c);
@@ -45,11 +49,8 @@ private:
     bool isLetter(char c);
     bool isValidIdentifierChar(char c);
     bool isValidIntegerLiteral(string str);
-    bool isCommentStart(char current, char next);
-    void handleComment(string input, int& pos);
-    string handleStringLiteral(string input, int& pos);
-    string getNextToken(string input, int& pos);
     void addToken(TokenType type, string value);
+    string extractNextToken(string input);
 };
 
 #endif // LA_H
