@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cctype>
 #include <sstream>
+#include <fstream>
+
 
 using namespace std;
 
@@ -39,6 +41,8 @@ public:
     string getNextToken(string input, int& pos);
     bool hasMoreTokens(string input, int pos);
     void printTokens();
+    vector<Token> tokensize(string input);
+    void lexer(string filename);
 
 private:
     bool isOperator(char c);
@@ -47,6 +51,7 @@ private:
     bool isLetter(char c);
     bool isValidIdentifierChar(char c);
     bool isValidIntegerLiteral(string str);
+    bool isValidRealLiteral(string str);
     void addToken(TokenType type, string value);
     string extractNextToken(string input);
 };

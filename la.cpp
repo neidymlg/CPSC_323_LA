@@ -65,10 +65,77 @@ void LexicalAnalyzer::printTokens() {
     }
 }
 
-// most likely delete
-// vector<Token> LexicalAnalyzer::tokensize(string input) {
-//     return analyze(input);
-// }
+// most likely change
+vector<Token> LexicalAnalyzer::tokensize(string input) {
+    vector<Token> tokens;
+    string token = "";
+    int state = 0;
+    
+    for (int i = 0; i < input.size(); i++) {
+        char c = input[i];
+
+        if (isspace(c)) {
+            if (!token.empty()) {
+                analyze(token);
+                token = "";
+            }
+            continue;
+        }
+        if (isLetter(c)) {
+            state = 1;
+            token += c;
+            while (i + 1 < input.size() && isValidIdentifierChar(input[i + 1])) {
+                token += input[++i];
+            }
+            analyze(token);
+            token = "";
+        } 
+        else if (isDigit(c)) {
+            state = 2;
+            token += c;
+
+            while (i + 1 < input.size() && isDigit(input[i + 1])) {
+                token += input[++i];
+            }
+
+            if (i + 1 < input.size() && input[i + 1] == '.') {
+                token += input[++i];
+                state = 3;
+
+                if (i + 1 < input.size() && isDigit(input[i + 1])) {
+                    token += input[++i];
+                    state = 4;
+                    
+                    while (i + 1 < input.size() && isDigit(input[i + 1])) {
+                        token += input[++i];
+                    }
+                    analyze(token);
+                } else {
+                    analyze(token);
+                }
+            } else {
+                analyze(token);
+            }
+            token = "";
+        }
+        else if (isOperator(c)) {
+            token += c;
+            analyze(token);
+            token = "";
+        } 
+        else if (isPunctuator(c)) {
+            token += c;
+            analyze(token);
+            token = "";
+        }
+        else {
+            token += c;
+            analyze(token);
+            token = "";
+        }
+    }
+    return tokens;
+}
 
 bool LexicalAnalyzer::isOperator(char c) {
     return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
@@ -86,10 +153,13 @@ bool LexicalAnalyzer::isLetter(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
+// identifier ; upper case and lower case are the same
 bool LexicalAnalyzer::isValidIdentifierChar(char c) {
+
     return isLetter(c) || isDigit(c) || c == '_';
 }
 
+// integer 
 bool LexicalAnalyzer::isValidIntegerLiteral(string str) {
     for (char c : str) {
         if (!isDigit(c)) {
@@ -99,35 +169,71 @@ bool LexicalAnalyzer::isValidIntegerLiteral(string str) {
     return true;
 }
 
-void LexicalAnalyzer::addToken(TokenType type, string value) {
-    tokens.push_back(Token(type, value));
+// void LexicalAnalyzer::addToken(TokenType type, string value) {
+//     tokens.push_back(Token(type, value));
+// }
+
+
+// string LexicalAnalyzer::getNextToken(string input, int& pos) {
+//     string token = "";
+
+//     if (pos == input.size()) {
+//         return token;
+//     }
+//     if (isOperator(input[pos])) {
+//         token += input[pos++];
+//     }
+//     else if (isPunctuator(input[pos])) {
+//         token += input[pos++];
+//     }
+//     else if (isDigit(input[pos])) {
+//         while (pos < input.size() && isDigit(input[pos])) {
+//             token += input[pos++];
+//         }
+//     }
+//     else if (isLetter(input[pos])) {
+//         while (pos < input.size() && isValidIdentifierChar(input[pos])) {
+//             token += input[pos++];
+//         }
+//     }
+//     else {
+//         token += input[pos++];
+//     }
+//     return token;
+// }
+
+
+// real: is integer followed by “.” and Integer, e.g., 123.00
+
+bool LexicalAnalyzer::isValidRealLiteral(string str) {
+    bool hasDecimal = false;
+    for (char c : str) {
+        if (c == '.') {
+            if (hasDecimal) {
+                return false;
+            }
+            hasDecimal = true;
+        }
+        else if (!isDigit(c)) {
+            return false;
+        }
+    }
+    return hasDecimal;
 }
 
+//lexer
 
-string LexicalAnalyzer::getNextToken(string input, int& pos) {
-    string token = "";
-
-    if (pos == input.size()) {
-        return token;
+void LexicalAnalyzer::lexer(string filename) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error opening file!" << endl;
+        return;
     }
-    if (isOperator(input[pos])) {
-        token += input[pos++];
+    
+    string line;
+    while (getline(file, line)) {
+        tokensize(line);
     }
-    else if (isPunctuator(input[pos])) {
-        token += input[pos++];
-    }
-    else if (isDigit(input[pos])) {
-        while (pos < input.size() && isDigit(input[pos])) {
-            token += input[pos++];
-        }
-    }
-    else if (isLetter(input[pos])) {
-        while (pos < input.size() && isValidIdentifierChar(input[pos])) {
-            token += input[pos++];
-        }
-    }
-    else {
-        token += input[pos++];
-    }
-    return token;
+    
+    file.close();
 }

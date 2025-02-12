@@ -6,4 +6,4 @@ clean:
 	rm la
 
 run:
-	./main
+	./la

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <fstream>
 #include <string>
 
@@ -6,9 +7,30 @@
 
 #define FILE_NAME "source.rat25s"
 
-Token lexer(std::string unparsedText) {
-    return Token(TokenType::KEYWORD, "DUMMY TOKEN");
+std::string tokenTypeToString(TokenType type) {
+    switch (type) {
+        case TokenType::KEYWORD: return "KEYWORD";
+        // Add other cases for different token types
+        default: return "UNKNOWN";
+    }
 }
+
+
+class Lexer {
+public:
+    std::vector<Token> tokens;
+
+    void analyze(const std::string& unparsedText) {
+        // Dummy implementation
+        tokens.push_back(Token(TokenType::KEYWORD, "DUMMY TOKEN"));
+    }
+
+    const std::vector<Token>& getTokens() const {
+        return tokens;
+    }
+};
+
+Lexer lexer;
 
 int main() {
     std::string line;
@@ -20,7 +42,7 @@ int main() {
     std::cout << "------------------------------" << std::endl;
 
     while (std::getline(sourceCodeFile, line)) {
-        Token parsedToken = lexer(line);
+        Token parsedToken = lexer.analyze(line);
 
         std::cout << parsedToken.value << "\t\t" << parsedToken.type << std::endl;
         std::cout << parsedToken << std::endl;
@@ -44,8 +66,30 @@ int main() {
     inputFile.close();
     
     la.printTokens();
-    
-    sourceCodeFile.close();
+    lexer.analyze("input.txt");
+    // sourceCodeFile.close();
+
+
+
+
+
+
+
+
+
+
+
+    // ofstream output("output.txt");
+    // if (!output.is_open()) {
+    //     cerr << "Error opening output file!" << endl;
+    //     return 1;
+    // }
+
+    // for (const Token& token : lexer.getTokens()) {
+    //     output << "<" << tokenTypeToString(token.type) << ", " << token.value << ">\n";
+    // }
+
+    // output.close();
 
     return 0;
 }
