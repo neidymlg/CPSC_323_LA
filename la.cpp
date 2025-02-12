@@ -46,13 +46,16 @@ void LexicalAnalyzer::printTokens() {
             type = "IDENTIFIER";
             break;
         case static_cast<int>(TokenType::INTEGER):
-            type = "INTEGER_LITERAL";
+            type = "INTEGER";
+            break;
+        case static_cast<int>(TokenType::REAL):
+            type = "REAL";
             break;
         case static_cast<int>(TokenType::OPERATOR):
             type = "OPERATOR";
             break;
         case static_cast<int>(TokenType::SEPARATOR):
-            type = "PUNCTUATOR";
+            type = "SEPERATOR";
             break;
         default:
             type = "UNKNOWN";
@@ -62,7 +65,8 @@ void LexicalAnalyzer::printTokens() {
     }
 }
 
-// vector<Token> LexicalAnalyzer::tokenize(string input) {
+// most likely delete
+// vector<Token> LexicalAnalyzer::tokensize(string input) {
 //     return analyze(input);
 // }
 
@@ -99,29 +103,31 @@ void LexicalAnalyzer::addToken(TokenType type, string value) {
     tokens.push_back(Token(type, value));
 }
 
-// string LexicalAnalyzer::getNextToken(string input, int& pos) {
-//     string token = "";
-//     if (pos == input.size()) {
-//         return token;
-//     }
-//     if (isOperator(input[pos])) {
-//         token += input[pos++];
-//     }
-//     else if (isPunctuator(input[pos])) {
-//         token += input[pos++];
-//     }
-//     else if (isDigit(input[pos])) {
-//         while (pos < input.size() && isDigit(input[pos])) {
-//             token += input[pos++];
-//         }
-//     }
-//     else if (isLetter(input[pos])) {
-//         while (pos < input.size() && isValidIdentifierChar(input[pos])) {
-//             token += input[pos++];
-//         }
-//     }
-//     else {
-//         token += input[pos++];
-//     }
-//     return token;
-// }
+
+string LexicalAnalyzer::getNextToken(string input, int& pos) {
+    string token = "";
+
+    if (pos == input.size()) {
+        return token;
+    }
+    if (isOperator(input[pos])) {
+        token += input[pos++];
+    }
+    else if (isPunctuator(input[pos])) {
+        token += input[pos++];
+    }
+    else if (isDigit(input[pos])) {
+        while (pos < input.size() && isDigit(input[pos])) {
+            token += input[pos++];
+        }
+    }
+    else if (isLetter(input[pos])) {
+        while (pos < input.size() && isValidIdentifierChar(input[pos])) {
+            token += input[pos++];
+        }
+    }
+    else {
+        token += input[pos++];
+    }
+    return token;
+}

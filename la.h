@@ -36,9 +36,7 @@ public:
     LexicalAnalyzer();
     void setInput(string input);
     void analyze(const string& token);
-
-    
-    Token getNextToken(string input, int& pos);
+    string getNextToken(string input, int& pos);
     bool hasMoreTokens(string input, int pos);
     void printTokens();
 
