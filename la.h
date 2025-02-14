@@ -1,5 +1,4 @@
-#ifndef LA_H
-#define LA_H
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -55,5 +54,3 @@ private:
     void addToken(TokenType type, string value);
     string extractNextToken(string input);
 };
-
-#endif // LA_H
