@@ -3,93 +3,47 @@
 #include <fstream>
 #include <string>
 
-#include "la.h"
+#include "lexer.cpp"
 
 #define FILE_NAME "source.rat25s"
 
-std::string tokenTypeToString(TokenType type) {
-    switch (type) {
-        case TokenType::KEYWORD: return "KEYWORD";
-        // Add other cases for different token types
-        default: return "UNKNOWN";
-    }
-}
-
-
-class Lexer {
-public:
-    std::vector<Token> tokens;
-
-    void analyze(const std::string& unparsedText) {
-        // Dummy implementation
-        tokens.push_back(Token(TokenType::KEYWORD, "DUMMY TOKEN"));
-    }
-
-    const std::vector<Token>& getTokens() const {
-        return tokens;
-    }
-};
-
-Lexer lexer;
-
 int main() {
-    std::string line;
-    std::fstream sourceCodeFile;
 
-    sourceCodeFile.open(FILE_NAME);
+    //open the file and store a pointer acting as a cursor.
+    FILE *filePointer = fopen(FILE_NAME, "r");
 
-    std::cout << "Token" << "\t\t\t" << "lexeme" << std::endl;
-    std::cout << "------------------------------" << std::endl;
-
-    while (std::getline(sourceCodeFile, line)) {
-        Token parsedToken = lexer.analyze(line);
-
-        std::cout << parsedToken.value << "\t\t" << parsedToken.type << std::endl;
-        std::cout << parsedToken << std::endl;
-
-        //call lexer for a token
-        //print:
-        //      token 
-        //      lexeme
-
-
-        
-    }
-    LexicalAnalyzer la;
-    ifstream inputFile("LA_input_1.txt");
-    string input;   
-
-    while(inputFile >> input){
-        la.analyze(input);
+    if(filePointer == nullptr) {
+        std::cout << "Whoops! Looks like there was an error finding the specified file." << std::endl;
+        return 1;
+    } else {
+        std::cout << "Opened File: " << FILE_NAME << std::endl;
     }
     
-    inputFile.close();
-    
-    la.printTokens();
-    lexer.analyze("input.txt");
-    // sourceCodeFile.close();
 
+    //get each char from the file one by one.
+    //  - getc(filePointer) to get the next char.
+    //  - unget(1, filePointer) to move the cursor back one.
+    while(true) {
+        try {
+            Token myToken = lexer(filePointer);
+            std::cout << myToken.value << std::endl;
+        } catch (std::string error) {
+            std::cout << error << std::endl;
+            break;
+        }
+        if(feof(filePointer)) {
+            break;
+        }
 
+    }
 
-
-
-
-
-
-
-
-
-    // ofstream output("output.txt");
-    // if (!output.is_open()) {
-    //     cerr << "Error opening output file!" << endl;
-    //     return 1;
-    // }
-
-    // for (const Token& token : lexer.getTokens()) {
-    //     output << "<" << tokenTypeToString(token.type) << ", " << token.value << ">\n";
-    // }
-
-    // output.close();
-
+    //close the file.
+    auto fileCloseError = fclose(filePointer);
+    if(!fileCloseError) {
+        std::cout << "Closed File: " << FILE_NAME << std::endl;
+    } else {
+        std::cout << "Error closing file: " << FILE_NAME << std::endl;
+        return 1;
+    }
     return 0;
 }
