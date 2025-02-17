@@ -116,6 +116,7 @@ public:
                         }
                         state = State::START;
                     }
+                    break;
                 case State::COMMENT:
                     break;
                 case State::INTEGER:
