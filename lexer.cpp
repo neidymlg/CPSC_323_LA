@@ -2,18 +2,29 @@
 #include <iostream>
 #include <unordered_map>
 #include <vector>
-#include <fstream>
+#include <cctype> //for tolower
 
 using namespace std;
 
 enum class TokenType {
-    KEYWORD, //complete
-    IDENTIFIER, //complete
-    INTEGER, //complete
+    KEYWORD, 
+    IDENTIFIER, 
+    INTEGER, 
     REAL,
-    OPERATOR, //complete
-    SEPARATOR, //complete
-    UNKNOWN //complete
+    OPERATOR, 
+    SEPARATOR,
+    UNKNOWN
+};
+
+enum State {
+    START,
+    IDENTIFIER,
+    COMMENT,
+    INTEGER,
+    CHECKREAL,
+    REAL,
+    OPERATOR,
+    SEPARATOR
 };
 
 struct Token {
@@ -26,6 +37,9 @@ struct Token {
 class LexicalAnalyzer {
     unordered_map<string, TokenType> keywords;
     vector<Token> tokens;
+    char myChar;
+    State state = State::START;
+
 public:
     LexicalAnalyzer() {
         keywords["integer"] = TokenType::KEYWORD;
@@ -73,27 +87,76 @@ public:
         }
     }
 
-    Token lexer(FILE* filePointer) {
-        char myChar = getc(filePointer);
-        TokenType myTokenType;
-        while(true) {
-            if(isWhiteSpace(myChar)) {
-                //change state
-                //go forward one char
-                myChar = getc(filePointer);
-                break;
-            } else if(isKeyword(myChar)){
-                break;
-            } else {
-                //error
-                break;
+    void lexer(FILE* filePointer) {
+        string token;
+
+        while(!feof(filePointer)) {
+            myChar = getc(filePointer);
+
+            switch(state) {
+                case State::START:
+                    token = myChar;
+                    if(isDigit(myChar)){
+                        state = State::INTEGER;
+                    }
+                    else if(isLetter(myChar)) {
+                        token = tolower(myChar);
+                        state = State::IDENTIFIER;
+                    }
+                    break;
+                case State::IDENTIFIER:
+                    if(isIdentifier(myChar)) {
+                        token += tolower(myChar);
+                    } else {
+                        ungetc(myChar, filePointer);
+                        if(keywords.find(token) != keywords.end()) {
+                            tokens.push_back(Token(TokenType::KEYWORD, token));
+                        } else {
+                            tokens.push_back(Token(TokenType::IDENTIFIER, token));
+                        }
+                        state = State::START;
+                    }
+                case State::COMMENT:
+                    break;
+                case State::INTEGER:
+                    if(isDigit(myChar)) {
+                        token += myChar;
+                    } else if(myChar == '.') {
+                        token += myChar;
+                        state = State::CHECKREAL;
+                    } else {
+                        ungetc(myChar, filePointer);
+                        tokens.push_back(Token(TokenType::INTEGER, token));
+                        state = State::START;
+                    }
+                    break;
+                case State::CHECKREAL:
+                    if(isDigit(myChar)) {
+                        token += myChar;
+                        state = State::REAL;
+                    } else {
+                        ungetc(myChar, filePointer);
+                        tokens.push_back(Token(TokenType::UNKNOWN, token));
+                        state = State::START;
+                    }
+                    break;
+                case State::REAL:
+                    if(isDigit(myChar)) {
+                        token += myChar;
+                    } else {
+                        ungetc(myChar, filePointer);
+                        tokens.push_back(Token(TokenType::REAL, token));
+                        state = State::START;
+                    }
+                    break;
+                case State::OPERATOR:
+                    break;
+                case State::SEPARATOR:
+                    break;
+                default:
+                    break;
             }
         }
-        
-        
-        
-        std::string tokenString = std::string(1, myChar);
-        return Token(TokenType::IDENTIFIER, tokenString);
     }
 
 private: 
@@ -111,7 +174,15 @@ private:
     }
 
     bool isLetter(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+        return (c >= 'a' && c <= 'z') | (c >= 'A' && c <= 'Z');
+    }
+
+    bool isIdentifier(char c) {
+        //implement Regex FSM for identifiers
+        if((c >= 'a' && c <= 'z') || isDigit(c) || c == '_') {
+            return true;
+        }
+        return false;
     }
 
     bool isWhiteSpace(char c) {
@@ -129,7 +200,6 @@ private:
         }
         return false;
     }
-
 };
 
 int main() {
@@ -149,19 +219,19 @@ int main() {
     //get each char from the file one by one.
     //  - getc(filePointer) to get the next char.
     //  - unget(1, filePointer) to move the cursor back one.
-    while(true) {
-        try {
-            Token myToken = la.lexer(filePointer);
-            std::cout << myToken.value << std::endl;
-        } catch (std::string error) {
-            std::cout << error << std::endl;
-            break;
-        }
-        if(feof(filePointer)) {
-            break;
-        }
+    la.lexer(filePointer);
+    // while(true) {
+    //     try {
+    //         la.lexer(filePointer);
+    //     } catch (std::string error) {
+    //         std::cout << error << std::endl;
+    //         break;
+    //     }
+    //     if(feof(filePointer)) {
+    //         break;
+    //     }
 
-    }
+    // }
 
     //close the file.
     auto fileCloseError = fclose(filePointer);
@@ -171,5 +241,7 @@ int main() {
         std::cout << "Error closing file: " << FILE_NAME << std::endl;
         return 1;
     }
+
+    la.printTokens();
     return 0;
 }
