@@ -96,59 +96,15 @@ public:
             switch(state) {
                 case State::START:
                     token = myChar;
-                    if(isDigit(myChar)){
-                        state = State::INTEGER;
+                    if(isDigit(myChar) || myChar == '.') {
+                        FSM_int_real(myChar, filePointer);
                     }
                     else if(isLetter(myChar)) {
                         token = tolower(myChar);
-                        state = State::IDENTIFIER;
+                        //add in FSM machine
                     }
-                    break;
-                case State::IDENTIFIER:
-                    if(isIdentifier(myChar)) {
-                        token += tolower(myChar);
-                    } else {
-                        ungetc(myChar, filePointer);
-                        if(keywords.find(token) != keywords.end()) {
-                            tokens.push_back(Token(TokenType::KEYWORD, token));
-                        } else {
-                            tokens.push_back(Token(TokenType::IDENTIFIER, token));
-                        }
-                        state = State::START;
-                    }
-                    break;
+                    
                 case State::COMMENT:
-                    break;
-                case State::INTEGER:
-                    if(isDigit(myChar)) {
-                        token += myChar;
-                    } else if(myChar == '.') {
-                        token += myChar;
-                        state = State::CHECKREAL;
-                    } else {
-                        ungetc(myChar, filePointer);
-                        tokens.push_back(Token(TokenType::INTEGER, token));
-                        state = State::START;
-                    }
-                    break;
-                case State::CHECKREAL:
-                    if(isDigit(myChar)) {
-                        token += myChar;
-                        state = State::REAL;
-                    } else {
-                        ungetc(myChar, filePointer);
-                        tokens.push_back(Token(TokenType::UNKNOWN, token));
-                        state = State::START;
-                    }
-                    break;
-                case State::REAL:
-                    if(isDigit(myChar)) {
-                        token += myChar;
-                    } else {
-                        ungetc(myChar, filePointer);
-                        tokens.push_back(Token(TokenType::REAL, token));
-                        state = State::START;
-                    }
                     break;
                 case State::OPERATOR:
                     break;
@@ -201,6 +157,54 @@ private:
         }
         return false;
     }
+
+    void FSM_int_real(char myChar, FILE* filePointer) {
+        string token;
+        int state = 1;
+
+        int int_union_real[5][2] = {
+            {2, 5},
+            {2, 3},
+            {4, 5},
+            {4, 5},
+            {5, 5}
+        };
+
+        token += myChar;
+        
+        if(myChar == '.'){
+            state = int_union_real[state-1][1];
+        }
+        else{
+            state = int_union_real[state-1][0];
+        }
+
+        while(!feof(filePointer)) {
+            myChar = getc(filePointer);
+
+            if(isDigit(myChar)){
+                token += myChar;   
+                state = int_union_real[state-1][0];
+            }
+            else if(myChar == '.'){
+                token += myChar;   
+                state = int_union_real[state-1][1];
+            }
+            else{
+                ungetc(myChar, filePointer);
+                if(state == 2){
+                    tokens.push_back(Token(TokenType::INTEGER, token));
+                }
+                else if(state == 4){
+                    tokens.push_back(Token(TokenType::REAL, token));
+                }
+                else{
+                    tokens.push_back(Token(TokenType::UNKNOWN, token));
+                }
+                break;
+            }
+    }
+}
 };
 
 int main() {
