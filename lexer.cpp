@@ -13,6 +13,18 @@ enum class TokenType {
     UNKNOWN //complete
 };
 
+// states
+enum class LexerState {
+    START,
+    KEYWORD,
+    IDENTIFIER,
+    INTEGER,
+    REAL,
+    OPERATOR,
+    SEPARATOR,
+    UNKNOWN
+};
+
 struct Token {
     TokenType type;
     std::string value;
@@ -26,7 +38,8 @@ bool isWhiteSpace(char c) {
     if(c == ' ') {
         return true;
     }
-    return false;
+        return false;
+    
 }
 
 bool isKeyword(char c) {
@@ -35,28 +48,56 @@ bool isKeyword(char c) {
         return true;
     }
     return false;
+
 }
 
 Token lexer(FILE* filePointer) {
-    char myChar = getc(filePointer);
+    // char myChar = getc(filePointer);
+    LexerState state = LexerState::START;
+    std::string tokenString = "";
+    char c;
+
     TokenType myTokenType;
     while(true) {
-        if(isWhiteSpace(myChar)) {
-            //change state
-            //go forward one char
-            myChar = getc(filePointer);
-            break;
-        } else if(isKeyword(myChar)){
-            break;
-        } else {
-            //error
-            break;
-        }
+        c = getc(filePointer);
+
+        switch(state) {
+            case LexerState::START:
+                if(isWhiteSpace(c)) {
+                    state = LexerState::START;
+                } else if(isKeyword(c)) {
+                    state = LexerState::KEYWORD;
+                } else {
+                    state = LexerState::UNKNOWN;
+                }
+                break;
+            case LexerState::KEYWORD:
+                if(isKeyword(c)) {
+                    state = LexerState::KEYWORD;
+                } else {
+                    state = LexerState::UNKNOWN;
+                }
+                break;
+            case LexerState::UNKNOWN:
+                break;
     }
+        //if(isWhiteSpace(myChar)) {
+            //change state
+        //     //go forward one char
+        //     myChar = getc(filePointer);
+        //     break;
+        // } else if(isKeyword(myChar)){
+        //     break;
+        // } else {
+        //     //error
+        //     break;
+        // }
+    // }
     
     
     
-    std::string tokenString = std::string(1, myChar);
-    return Token(TokenType::IDENTIFIER, tokenString);
+    // std::string tokenString = std::string(1, myChar);
+    // return Token(TokenType::IDENTIFIER, tokenString);
+}
 };
 
