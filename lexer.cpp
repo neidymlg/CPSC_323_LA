@@ -18,13 +18,7 @@ enum class TokenType {
 
 enum State {
     START,
-    IDENTIFIER,
-    COMMENT,
-    INTEGER,
-    CHECKREAL,
-    REAL,
-    OPERATOR,
-    SEPARATOR
+    COMMENT
 };
 
 struct Token {
@@ -103,12 +97,20 @@ public:
                         token = tolower(myChar);
                         //add in FSM machine
                     }
-                    
+                    else if(isOperator(myChar)){
+                        tokens.push_back(Token(TokenType::OPERATOR, token));
+                    }
+                    else if(isSeparator(myChar)){
+                        tokens.push_back(Token(TokenType::SEPARATOR, token));
+                    }
+                    else if(myChar == '['){
+                        state = State::COMMENT;
+                    }
+                    break;   
                 case State::COMMENT:
-                    break;
-                case State::OPERATOR:
-                    break;
-                case State::SEPARATOR:
+                    if(myChar == ']'){
+                        state = State::START;
+                    }
                     break;
                 default:
                     break;
@@ -142,13 +144,13 @@ private:
         return false;
     }
 
-    bool isWhiteSpace(char c) {
-        //implement Regex FSM
-        if(c == ' ') {
-            return true;
-        }
-        return false;
-    }
+    // bool isWhiteSpace(char c) {
+    //     //implement Regex FSM
+    //     if(c == ' ') {
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     bool isKeyword(char c) {
         //implement Regex FSM for keywords
