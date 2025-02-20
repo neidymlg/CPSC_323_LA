@@ -114,8 +114,9 @@ public:
                         }
                         else {
                             ungetc(myChar, filePointer);
-                            if (keywords.find(token) != keywords.end()) {
-                                tokens.push_back(Token(keywords[token], token));
+                            auto keywordIt = keywords.find(token);
+                            if (keywordIt != keywords.end()) {
+                                tokens.push_back(Token(keywordIt->second, token));
                             }
                             else {
                                 tokens.push_back(Token(TokenType::IDENTIFIER, token));
