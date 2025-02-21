@@ -82,7 +82,7 @@ public:
                 type = "OPERATOR";
                 break;
             case TokenType::SEPARATOR:
-                type = "PUNCTUATOR";
+                type = "SEPARATOR";
                 break;
             default:
                 type = "UNKNOWN";
@@ -100,36 +100,20 @@ public:
 
             switch (state) {
             case State::START:
-                token = myChar;
                 if (isDigit(myChar) || myChar == '.') {
                     FSM_int_real(myChar, filePointer);
                 }
                 else if (isLetter(myChar)) {
-                    token = tolower(myChar);
-                    //add in FSM machine
-                    while (!feof(filePointer)) {
-                        myChar = getc(filePointer);
-                        if (isIdentifier(myChar)) {
-                            token += tolower(myChar);
-                        }
-                        else {
-                            ungetc(myChar, filePointer);
-                            auto keywordIt = keywords.find(token);
-                            if (keywordIt != keywords.end()) {
-                                tokens.push_back(Token(keywordIt->second, token));
-                            }
-                            else {
-                                tokens.push_back(Token(TokenType::IDENTIFIER, token));
-                            }
-                            break;
-                        }
-                        // ======        
-                    }
+                    ungetc(myChar, filePointer);
+
+                    findIdentifiers(filePointer);
                 }
                 else if (isOperator(myChar)) {
+                    token = myChar;
                     tokens.push_back(Token(TokenType::OPERATOR, token));
                 }
                 else if (isSeparator(myChar)) {
+                    token = myChar;
                     tokens.push_back(Token(TokenType::SEPARATOR, token));
                 }
                 else if (myChar == '[') {
@@ -165,14 +149,42 @@ private:
         return (c >= 'a' && c <= 'z') | (c >= 'A' && c <= 'Z');
     }
 
-    bool isIdentifier(char c) {
-        //implement Regex FSM for identifiers
-        if ((c >= 'a' && c <= 'z') || isDigit(c) || c == '_') {
-            return true;
+    // bool isIdentifier(char c) {
+    //     //implement Regex FSM for identifiers
+    //     if ((c >= 'a' && c <= 'z') || isDigit(c) || c == '_') {
+    //         return true;
+    //     }
+    //     return false;
+    // }
+    void findIdentifiers(FILE* filePointer) {
+        string token;
+        char myChar;
+        myChar = getc(filePointer);
+        token += myChar;
+
+        while (!feof(filePointer)) {
+            myChar = getc(filePointer);
+            if ((myChar >= 'a' && myChar <= 'z') || isDigit(myChar) || myChar == '_') {
+                token += myChar;
+            }
+            else {
+                ungetc(myChar, filePointer);
+                if (keywords.find(token) != keywords.end()) {
+                    tokens.push_back(Token(keywords[token], token));
+                }
+                else {
+                    tokens.push_back(Token(TokenType::IDENTIFIER, token));
+                }
+                break;
+            }
         }
-        return false;
     }
 
+    bool isIdentifier(FILE* filePointer) {
+        return (myChar >= 'a' && myChar <= 'z') || (myChar >= 'A' && myChar <= 'Z') || myChar == '_';
+    }
+
+    // all white spaces should be ignored
     // bool isWhiteSpace(char c) {
     //     //implement Regex FSM
     //     if(c == ' ') {
