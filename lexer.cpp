@@ -281,7 +281,7 @@ int main() {
     //     }
 
     // }
-
+    
     //close the file.
     auto fileCloseError = fclose(filePointer);
     if (!fileCloseError) {
@@ -291,6 +291,7 @@ int main() {
         std::cout << "Error closing file: " << FILE_NAME << std::endl;
         return 1;
     }
+    std::cout << "\noutput:\n" << "token       lexeme" <<"\n----------------------" << std::endl;
 
     la.printTokens();
     return 0;
