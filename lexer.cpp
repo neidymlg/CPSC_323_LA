@@ -33,6 +33,13 @@ enum class LexerState {
     UNKNOWN
 };
 
+int fsm_identifier[5][3] = {
+    {2, 4, 5},
+    {2, 3, 5},
+    {2, 3, 5},
+    {3, 3, 5},
+    {5, 5, 5}
+};
 struct Token {
     TokenType type;
     std::string value;
@@ -61,6 +68,7 @@ public:
         keywords["true"] = TokenType::KEYWORD;
         keywords["false"] = TokenType::KEYWORD;
     }
+
 
     void printTokens() {
         for (Token token : tokens) {
@@ -92,6 +100,10 @@ public:
         }
     }
 
+
+    // Token lexer (FILE* filePointer) {
+    //     string token;
+    //     char myChar = getc(filePointer); and so forth
     void lexer(FILE* filePointer) {
         string token;
 
@@ -106,7 +118,7 @@ public:
                 else if (isLetter(myChar)) {
                     ungetc(myChar, filePointer);
 
-                    findIdentifiers(filePointer);
+                    FSM_identifier(filePointer);
                 }
                 else if (isOperator(myChar)) {
                     token = myChar;
@@ -149,40 +161,46 @@ private:
         return (c >= 'a' && c <= 'z') | (c >= 'A' && c <= 'Z');
     }
 
-    // bool isIdentifier(char c) {
-    //     //implement Regex FSM for identifiers
-    //     if ((c >= 'a' && c <= 'z') || isDigit(c) || c == '_') {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-    void findIdentifiers(FILE* filePointer) {
+    void FSM_identifier(FILE* filePointer) {
         string token;
-        char myChar;
-        myChar = getc(filePointer);
+        int state = 1;
+
+        char myChar = getc(filePointer);
         token += myChar;
+
+        if (isLetter(myChar) || myChar == '_') {
+            state = fsm_identifier[state - 1][0];
+        } else if (isDigit(myChar)) {
+            state = fsm_identifier[state - 1][1];
+        } else {
+            state = fsm_identifier[state - 1][2];
+        }
 
         while (!feof(filePointer)) {
             myChar = getc(filePointer);
-            if ((myChar >= 'a' && myChar <= 'z') || isDigit(myChar) || myChar == '_') {
+
+            if (isLetter(myChar) || myChar == '_') {
                 token += myChar;
-            }
-            else {
+                state = fsm_identifier[state - 1][0];
+            } else if (isDigit(myChar)) {
+                token += myChar;
+                state = fsm_identifier[state - 1][1];
+            } else {
                 ungetc(myChar, filePointer);
-                if (keywords.find(token) != keywords.end()) {
-                    tokens.push_back(Token(keywords[token], token));
-                }
-                else {
-                    tokens.push_back(Token(TokenType::IDENTIFIER, token));
+                if (state == 2 || state == 3) {
+                    if (keywords.find(token) != keywords.end()) {
+                        tokens.push_back(Token(keywords[token], token));
+                    } else {
+                        tokens.push_back(Token(TokenType::IDENTIFIER, token));
+                    }
+                } else {
+                    tokens.push_back(Token(TokenType::UNKNOWN, token));
                 }
                 break;
             }
         }
     }
 
-    bool isIdentifier(FILE* filePointer) {
-        return (myChar >= 'a' && myChar <= 'z') || (myChar >= 'A' && myChar <= 'Z') || myChar == '_';
-    }
 
     // all white spaces should be ignored
     // bool isWhiteSpace(char c) {
