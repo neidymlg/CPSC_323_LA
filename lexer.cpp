@@ -121,7 +121,32 @@ public:
                     FSM_identifier(filePointer);
                 }
                 else if (isOperator(myChar)) {
-                    token = myChar;
+                    //check if next character is a valid operator with two symbols...
+                    if(myChar == '>' || myChar == '<' || myChar == '=') {
+                        char secondChar = getc(filePointer);
+                        std::cout << "grabbing second char after: " << myChar << std::endl;
+                        std::cout << "second char: " << secondChar << std::endl;
+
+                        if(myChar == '>' && secondChar == '=') {
+                            token = myChar;
+                            token += secondChar;
+                        } else if (myChar == '<' && secondChar == '=') {
+                            std::cout << "appending two characters." << std::endl;
+                            token = myChar;
+                            token += secondChar;
+                            std::cout << "string to return: " << token << std::endl;
+                        } else if (myChar == '=' && secondChar == '=') {
+                            token = myChar;
+                            token += secondChar;
+                        } else {
+                            //if not a valid 2 symbol operator, move filePtr back 1.
+                            std::cout << "move back 1 char" << std::endl;
+                            ungetc(secondChar, filePointer);
+                        }
+                    } else {
+                        //this is a single symbol operator
+                        token = myChar;
+                    }
                     tokens.push_back(Token(TokenType::OPERATOR, token));
                 }
                 else if (isSeparator(myChar)) {
