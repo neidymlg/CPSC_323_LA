@@ -1,4 +1,1 @@
-integer { .1  2.0 3. 400 + 4 } [* hello world *]
-, x_123 1_234 Zy_2392
-
 while (fahr <= upper) a = 23.00; endwhile [* this is a sample *]

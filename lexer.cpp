@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cctype> //for tolower
+#include <iomanip>
 
 using namespace std;
 
@@ -104,68 +105,56 @@ public:
     // Token lexer (FILE* filePointer) {
     //     string token;
     //     char myChar = getc(filePointer); and so forth
-    void lexer(FILE* filePointer) {
+    Token lexer(FILE* filePointer) {
         string token;
-
         while (!feof(filePointer)) {
             myChar = getc(filePointer);
 
+            if (myChar == EOF) {
+                return Token(TokenType::UNKNOWN, ""); // Return empty token to signal EOF
+            }
+
             switch (state) {
             case State::START:
-                if (isDigit(myChar) || myChar == '.') {
-                    FSM_int_real(myChar, filePointer);
+                if (isdigit(myChar) || myChar == '.') {
+                    return FSM_int_real(myChar, filePointer);
                 }
-                else if (isLetter(myChar)) {
-                    ungetc(myChar, filePointer);
-
-                    FSM_identifier(filePointer);
+                else if (isalpha(myChar)) {
+                    return FSM_identifier(filePointer);
                 }
                 else if (isOperator(myChar)) {
-                    //check if next character is a valid operator with two symbols...
-                    if(myChar == '>' || myChar == '<' || myChar == '=') {
-                        char secondChar = getc(filePointer);
-                        std::cout << "grabbing second char after: " << myChar << std::endl;
-                        std::cout << "second char: " << secondChar << std::endl;
-
-                        if(myChar == '>' && secondChar == '=') {
-                            token = myChar;
-                            token += secondChar;
-                        } else if (myChar == '<' && secondChar == '=') {
-                            std::cout << "appending two characters." << std::endl;
-                            token = myChar;
-                            token += secondChar;
-                            std::cout << "string to return: " << token << std::endl;
-                        } else if (myChar == '=' && secondChar == '=') {
-                            token = myChar;
-                            token += secondChar;
-                        } else {
-                            //if not a valid 2 symbol operator, move filePtr back 1.
-                            std::cout << "move back 1 char" << std::endl;
-                            ungetc(secondChar, filePointer);
-                        }
-                    } else {
-                        //this is a single symbol operator
-                        token = myChar;
+                    char nextChar = getc(filePointer);
+                    string op(1, myChar);
+                    if ((myChar == '<' || myChar == '>' || myChar == '=' || myChar == '!') && nextChar == '=') {
+                        op += nextChar;  // <=, >=, ==, !=
                     }
-                    tokens.push_back(Token(TokenType::OPERATOR, token));
+                    else {
+                        ungetc(nextChar, filePointer);
+                    }
+                    return Token(TokenType::OPERATOR, op);
                 }
                 else if (isSeparator(myChar)) {
-                    token = myChar;
-                    tokens.push_back(Token(TokenType::SEPARATOR, token));
+                    return Token(TokenType::SEPARATOR, string(1, myChar));
                 }
                 else if (myChar == '[') {
                     state = State::COMMENT;
                 }
+                else if (myChar == ' ' || myChar == '\n' || myChar == '\t') {
+                    continue;
+                }
+                else {
+                    return Token(TokenType::UNKNOWN, string(1, myChar));
+                }
                 break;
+
             case State::COMMENT:
                 if (myChar == ']') {
                     state = State::START;
                 }
                 break;
-            default:
-                break;
             }
         }
+        return Token(TokenType::UNKNOWN, "");
     }
 
 private:
@@ -186,45 +175,39 @@ private:
         return (c >= 'a' && c <= 'z') | (c >= 'A' && c <= 'Z');
     }
 
-    void FSM_identifier(FILE* filePointer) {
-        string token;
-        int state = 1;
-
-        char myChar = getc(filePointer);
-        token += myChar;
-
-        if (isLetter(myChar) || myChar == '_') {
-            state = fsm_identifier[state - 1][0];
-        } else if (isDigit(myChar)) {
-            state = fsm_identifier[state - 1][1];
-        } else {
-            state = fsm_identifier[state - 1][2];
-        }
-
+    Token FSM_identifier(FILE* filePointer) {
+        string lexeme;
+        int state = 0;
+    
         while (!feof(filePointer)) {
-            myChar = getc(filePointer);
-
-            if (isLetter(myChar) || myChar == '_') {
-                token += myChar;
-                state = fsm_identifier[state - 1][0];
-            } else if (isDigit(myChar)) {
-                token += myChar;
-                state = fsm_identifier[state - 1][1];
-            } else {
-                ungetc(myChar, filePointer);
-                if (state == 2 || state == 3) {
-                    if (keywords.find(token) != keywords.end()) {
-                        tokens.push_back(Token(keywords[token], token));
+            switch (state) {
+                case 0:
+                    if (isalpha(myChar) || myChar == '_') {
+                        lexeme += myChar;
+                        state = 1;
                     } else {
-                        tokens.push_back(Token(TokenType::IDENTIFIER, token));
+                        return Token(TokenType::UNKNOWN, string(1, myChar));
                     }
-                } else {
-                    tokens.push_back(Token(TokenType::UNKNOWN, token));
-                }
-                break;
+                    break;
+    
+                case 1:
+                    myChar = getc(filePointer);
+                    if (isalnum(myChar) || myChar == '_') {
+                        lexeme += myChar;
+                    } else {
+                        ungetc(myChar, filePointer);
+                        if (keywords.find(lexeme) != keywords.end()) {
+                            return Token(TokenType::KEYWORD, lexeme);
+                        }
+                        return Token(TokenType::IDENTIFIER, lexeme);
+                    }
+                    break;
             }
         }
+        return Token(TokenType::IDENTIFIER, lexeme);
     }
+    
+
 
 
     // all white spaces should be ignored
@@ -244,7 +227,7 @@ private:
         return false;
     }
 
-    void FSM_int_real(char myChar, FILE* filePointer) {
+    Token FSM_int_real(char myChar, FILE* filePointer) {
         string token;
         int state = 1;
 
@@ -290,52 +273,57 @@ private:
                 break;
             }
         }
+        return tokens.back();
     }
 };
 
 int main() {
-
     string FILE_NAME = "LA_input_1.txt";
-    //open the file and store a pointer acting as a cursor.
-    FILE* filePointer = fopen("LA_input_1.txt", "r");
+    FILE* filePointer = fopen(FILE_NAME.c_str(), "r");
 
-    if (filePointer == nullptr) {
-        std::cout << "Whoops! Looks like there was an error finding the specified file." << std::endl;
+    if (!filePointer) {
+        std::cout << "Error: Cannot open file " << FILE_NAME << std::endl;
         return 1;
-    }
-    else {
-        std::cout << "Opened File: " << FILE_NAME << std::endl;
     }
 
     LexicalAnalyzer la;
-    //get each char from the file one by one.
-    //  - getc(filePointer) to get the next char.
-    //  - unget(1, filePointer) to move the cursor back one.
-    la.lexer(filePointer);
-    // while(true) {
-    //     try {
-    //         la.lexer(filePointer);
-    //     } catch (std::string error) {
-    //         std::cout << error << std::endl;
-    //         break;
-    //     }
-    //     if(feof(filePointer)) {
-    //         break;
-    //     }
+    std::vector<Token> tokens;
 
-    // }
-    
-    //close the file.
-    auto fileCloseError = fclose(filePointer);
-    if (!fileCloseError) {
-        std::cout << "Closed File: " << FILE_NAME << std::endl;
+    while (!feof(filePointer)) {
+        Token token = la.lexer(filePointer);
+        if (token.value.empty()) {
+            break;
+        }
+        tokens.push_back(token);
     }
-    else {
-        std::cout << "Error closing file: " << FILE_NAME << std::endl;
-        return 1;
-    }
-    std::cout << "\noutput:\n" << "token       lexeme" <<"\n----------------------" << std::endl;
 
-    la.printTokens();
+    fclose(filePointer);
+
+    std::cout << "\nOutput:\n";
+    std::cout << "                    token                             lexeme\n";
+    std::cout << "------------------------------------------------------------\n";
+
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        string type;
+        switch (tokens[i].type) {
+        case TokenType::KEYWORD: type = "keyword";
+            break;
+        case TokenType::IDENTIFIER: type = "identifier";
+            break;
+        case TokenType::INTEGER: type = "integer";
+            break;
+        case TokenType::REAL: type = "real";
+            break;
+        case TokenType::OPERATOR: type = "operator";
+            break;
+        case TokenType::SEPARATOR: type = "separator";
+            break;
+        default: type = "unknown";
+            break;
+        }
+
+        std::cout << "                   " << std::left << std::setw(35) << type << tokens[i].value << std::endl;
+    }
+
     return 0;
 }
