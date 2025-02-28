@@ -15,7 +15,7 @@ integer a, b, c; [* Variable declarations *]
 real result;  
 $$  
 scan (a, b, c);  
-while (a < b && c != 0)  
+while (a < b)  
 {  
     print (a);  
     result = computeValue (a, c);  
@@ -28,13 +28,13 @@ while (a < b && c != 0)
 }  
 endwhile  
 $$  
-string text = "Hello, World!";  
+string text = a;  
 print (text);  
 $$  
 boolean flag = true;  
-if (!flag || (b <= 5 && a != 0))  
+if (b <= 5 && a != 0)
 {  
-    print ("Condition met!");  
+    print (b);  
 }  
 $$  
 return;  
