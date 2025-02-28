@@ -34,13 +34,6 @@ enum class LexerState {
     UNKNOWN
 };
 
-int fsm_identifier[5][3] = {
-    {2, 4, 5},
-    {2, 3, 5},
-    {2, 3, 5},
-    {3, 3, 5},
-    {5, 5, 5}
-};
 struct Token {
     TokenType type;
     std::string value;
@@ -52,6 +45,14 @@ class LexicalAnalyzer {
     vector<Token> tokens;
     char myChar;
     State state = State::START;
+    
+    int int_union_real[5][2] = {
+        {2, 5},
+        {2, 3},
+        {4, 5},
+        {4, 5},
+        {5, 5}
+    };
 
 public:
     LexicalAnalyzer() {
@@ -101,23 +102,13 @@ public:
         }
     }
 
-
-    // Token lexer (FILE* filePointer) {
-    //     string token;
-    //     char myChar = getc(filePointer); and so forth
     Token lexer(FILE* filePointer) {
         string token;
-        while (!feof(filePointer)) {
-            myChar = getc(filePointer);
-
-            if (myChar == EOF) {
-                return Token(TokenType::UNKNOWN, ""); // Return empty token to signal EOF
-            }
-
+        while ((myChar = getc(filePointer)) != EOF) {
             switch (state) {
             case State::START:
                 if (isdigit(myChar) || myChar == '.') {
-                    return FSM_int_real(myChar, filePointer);
+                    return FSM_int_real(filePointer);
                 }
                 else if (isalpha(myChar)) {
                     return FSM_identifier(filePointer);
@@ -125,8 +116,8 @@ public:
                 else if (isOperator(myChar)) {
                     char nextChar = getc(filePointer);
                     string op(1, myChar);
-                    if ((myChar == '<' || myChar == '>' || myChar == '=' || myChar == '!') && nextChar == '=') {
-                        op += nextChar;  // <=, >=, ==, !=
+                    if (nextChar == '=') {
+                        op += nextChar; // for operators like <=, >=, ==, !=
                     }
                     else {
                         ungetc(nextChar, filePointer);
@@ -135,6 +126,16 @@ public:
                 }
                 else if (isSeparator(myChar)) {
                     return Token(TokenType::SEPARATOR, string(1, myChar));
+                }
+                else if(myChar == '$'){
+                    char nextChar = getc(filePointer);
+                    if(myChar == '$' && nextChar == '$'){
+                        return Token(TokenType::SEPARATOR, "$$");
+                    }
+                    else{
+                        ungetc(nextChar, filePointer);
+                        return Token(TokenType::UNKNOWN, "$");
+                    }
                 }
                 else if (myChar == '[') {
                     state = State::COMMENT;
@@ -167,77 +168,35 @@ private:
         return c == ';' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}';
     }
 
-    bool isDigit(char c) {
-        return c >= '0' && c <= '9';
-    }
-
-    bool isLetter(char c) {
-        return (c >= 'a' && c <= 'z') | (c >= 'A' && c <= 'Z');
-    }
-
     Token FSM_identifier(FILE* filePointer) {
         string lexeme;
-        int state = 0;
     
-        while (!feof(filePointer)) {
-            switch (state) {
-                case 0:
-                    if (isalpha(myChar) || myChar == '_') {
-                        lexeme += myChar;
-                        state = 1;
-                    } else {
-                        return Token(TokenType::UNKNOWN, string(1, myChar));
-                    }
-                    break;
-    
-                case 1:
-                    myChar = getc(filePointer);
-                    if (isalnum(myChar) || myChar == '_') {
-                        lexeme += myChar;
-                    } else {
-                        ungetc(myChar, filePointer);
-                        if (keywords.find(lexeme) != keywords.end()) {
-                            return Token(TokenType::KEYWORD, lexeme);
-                        }
-                        return Token(TokenType::IDENTIFIER, lexeme);
-                    }
-                    break;
+        lexeme += tolower(myChar);
+
+        while ((myChar = getc(filePointer)) != EOF) {
+            if(isalpha(myChar)){
+                myChar = tolower(myChar);
+                lexeme += myChar;
+            }
+            else if(isdigit(myChar) || myChar == '_'){
+                lexeme += myChar;
+            }
+            else {
+                ungetc(myChar, filePointer);
+                if (keywords.find(lexeme) != keywords.end()) {
+                    return Token(TokenType::KEYWORD, lexeme);
+                }
+                return Token(TokenType::IDENTIFIER, lexeme);
             }
         }
+
         return Token(TokenType::IDENTIFIER, lexeme);
     }
     
 
-
-
-    // all white spaces should be ignored
-    // bool isWhiteSpace(char c) {
-    //     //implement Regex FSM
-    //     if(c == ' ') {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-    bool isKeyword(char c) {
-        //implement Regex FSM for keywords
-        if (isalpha(c)) {
-            return true;
-        }
-        return false;
-    }
-
-    Token FSM_int_real(char myChar, FILE* filePointer) {
+    Token FSM_int_real(FILE* filePointer) {
         string token;
         int state = 1;
-
-        int int_union_real[5][2] = {
-            {2, 5},
-            {2, 3},
-            {4, 5},
-            {4, 5},
-            {5, 5}
-        };
 
         token += myChar;
 
@@ -248,10 +207,8 @@ private:
             state = int_union_real[state - 1][0];
         }
 
-        while (!feof(filePointer)) {
-            myChar = getc(filePointer);
-
-            if (isDigit(myChar)) {
+        while ((myChar = getc(filePointer)) != EOF) {
+            if (isdigit(myChar)) {
                 token += myChar;
                 state = int_union_real[state - 1][0];
             }
@@ -289,13 +246,14 @@ int main() {
     LexicalAnalyzer la;
     std::vector<Token> tokens;
 
-    while (!feof(filePointer)) {
+    while (true) {
         Token token = la.lexer(filePointer);
         if (token.value.empty()) {
             break;
         }
         tokens.push_back(token);
     }
+    
 
     fclose(filePointer);
 

@@ -1,1 +1,41 @@
-while (fahr <= upper) a = 23.00; endwhile [* this is a sample *]
+$$  
+function computeValue (x integer, y real)  
+{  
+    if (x == 0)  
+    {  
+        return y + 42;  
+    }  
+    else  
+    {  
+        return x * (y / 3.14) - (x % 7);  
+    }  
+}  
+$$  
+integer a, b, c; [* Variable declarations *]  
+real result;  
+$$  
+scan (a, b, c);  
+while (a < b && c != 0)  
+{  
+    print (a);  
+    result = computeValue (a, c);  
+    print (result);  
+    if (result >= 100.5)  
+    {  
+        break;  
+    }  
+    a = a + c;  
+}  
+endwhile  
+$$  
+string text = "Hello, World!";  
+print (text);  
+$$  
+boolean flag = true;  
+if (!flag || (b <= 5 && a != 0))  
+{  
+    print ("Condition met!");  
+}  
+$$  
+return;  
+$$  
