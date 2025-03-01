@@ -1,3 +1,13 @@
+
+// Authors:
+// KJ Jennings
+// Beatriz Torres Archundia
+// Neidy Malaga                                                                                       
+
+// CPSC 323
+// Project 1: Lexical Analyzer
+// Due Date: 03/02/2025
+
 #include <string>
 #include <iostream>
 #include <unordered_map>
@@ -36,7 +46,7 @@ class LexicalAnalyzer {
     unordered_map<string, TokenType> keywords; //to store keywords
     char myChar; //to get current character
     State state = State::START;
-    
+
     //fsm for identifiers, int, and real
     int identifier[6][3] = {
         {2, 6, 6},
@@ -113,12 +123,12 @@ public:
                 else if (isSeparator(myChar)) {
                     return Token(TokenType::SEPARATOR, string(1, myChar));
                 }
-                else if(myChar == '$'){
+                else if (myChar == '$') {
                     char nextChar = getc(filePointer);
-                    if(myChar == '$' && nextChar == '$'){
+                    if (myChar == '$' && nextChar == '$') {
                         return Token(TokenType::SEPARATOR, "$$");
                     }
-                    else{
+                    else {
                         ungetc(nextChar, filePointer);
                         return Token(TokenType::UNKNOWN, "$");
                     }
@@ -158,14 +168,14 @@ private:
     }
 
     //checks whitespace
-    bool isWhiteSpace(char c){
-        return c == ' ' || c == '\n' || c=='\t';
+    bool isWhiteSpace(char c) {
+        return c == ' ' || c == '\n' || c == '\t';
     }
 
     //categorizes fsm identifier
     Token FSM_identifier(FILE* filePointer) {
         string lexeme;
-    
+
         //gets first string and starts as state 2 (since we went from 1 -> letter -> 2)
         lexeme += tolower(myChar);
         int state = 2;
@@ -178,42 +188,42 @@ private:
         //4. , identifier, or invalid combination and categorizes
         //5. if it is an invalid symbol, adds into lexeme, changes state to 6 to symbolize it is invalid
         while ((myChar = getc(filePointer)) != EOF) {
-            if(isalpha(myChar)){
+            if (isalpha(myChar)) {
                 myChar = tolower(myChar);
                 lexeme += myChar;
-                state = identifier[state-1][0];
+                state = identifier[state - 1][0];
             }
-            else if(isdigit(myChar)){
+            else if (isdigit(myChar)) {
                 lexeme += myChar;
-                state = identifier[state-1][1];
+                state = identifier[state - 1][1];
             }
-            else if(myChar == '_'){
+            else if (myChar == '_') {
                 lexeme += myChar;
-                state = identifier[state-1][2];
+                state = identifier[state - 1][2];
             }
-            else if(isWhiteSpace(myChar) || isOperator(myChar) || isSeparator(myChar)){
+            else if (isWhiteSpace(myChar) || isOperator(myChar) || isSeparator(myChar)) {
                 ungetc(myChar, filePointer);
                 if (keywords.find(lexeme) != keywords.end()) {
                     return Token(TokenType::KEYWORD, lexeme);
                 }
-                else if (state > 1 && state < 6){
+                else if (state > 1 && state < 6) {
                     return Token(TokenType::IDENTIFIER, lexeme);
                 }
-                else{
+                else {
                     return Token(TokenType::UNKNOWN, lexeme);
                 }
             }
             else {
                 lexeme += myChar;
                 state = 6;
-             
+
             }
         }
 
         //if there is only one letter, returns it as an identifier
         return Token(TokenType::IDENTIFIER, lexeme);
     }
-    
+
 
     //categorizes fsm integer or real
     Token FSM_int_real(FILE* filePointer) {
@@ -260,7 +270,7 @@ private:
             }
         }
         //if there is only one character (as in it didn't go through the for loop), gives it the proper state 
-        if(state == 2){
+        if (state == 2) {
             return Token(TokenType::INTEGER, lexeme);
         }
         else if (state == 4) {
@@ -298,7 +308,7 @@ int main() {
         }
         tokens.push_back(token);
     }
-    
+
     //closes file
     fclose(filePointer);
 
