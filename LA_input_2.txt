@@ -9,7 +9,7 @@ c += a; [** Integral to equaton 2 **]
 c,a,EXAMPLE = .2, 4., 40000;
 print(a, c);  
 $$  
-while (a-- > 0)  
+while (a-- > 0.0)  
 {  
     if (!(b - c))  
         break;  

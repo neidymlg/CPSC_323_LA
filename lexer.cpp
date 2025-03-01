@@ -75,7 +75,7 @@ public:
         keywords["break"] = TokenType::KEYWORD;
     }
 
-    //reads all tokens, sends to the FSM functions to be categorized (return Token types)
+    //reads all lexemes, sends to the FSM functions to be categorized (return Token types)
     //or categorizes (returns token types) themselves
     Token lexer(FILE* filePointer) {
 
@@ -217,11 +217,11 @@ private:
 
     //categorizes fsm integer or real
     Token FSM_int_real(FILE* filePointer) {
-        string token;
+        string lexeme;
         int state = 1;
 
-        //adds first character into token
-        token += myChar;
+        //adds first character into lexeme
+        lexeme += myChar;
 
         //1. if first character is ., changes state (this is an invalid state)
         //2. if first character is digit, changes state
@@ -233,41 +233,41 @@ private:
         }
 
         //gets next character using the while loop
-        //1. if character is a digit, adds into token, changes state
-        //2. if character is a ., adds into token, changes state
+        //1. if character is a digit, adds into lexeme, changes state
+        //2. if character is a ., adds into lexeme, changes state
         //3. if character isn't any of the above, puts char back to buffer, checks if it state 2 and categorizes
         //3. into integer, state 4 for real, and if it is not any of these states, then it is unknown (invalid)
         while ((myChar = getc(filePointer)) != EOF) {
             if (isdigit(myChar)) {
-                token += myChar;
+                lexeme += myChar;
                 state = int_union_real[state - 1][0];
             }
             else if (myChar == '.') {
-                token += myChar;
+                lexeme += myChar;
                 state = int_union_real[state - 1][1];
             }
             else {
                 ungetc(myChar, filePointer);
                 if (state == 2) {
-                    return Token(TokenType::INTEGER, token);
+                    return Token(TokenType::INTEGER, lexeme);
                 }
                 else if (state == 4) {
-                    return Token(TokenType::REAL, token);
+                    return Token(TokenType::REAL, lexeme);
                 }
                 else {
-                    return Token(TokenType::UNKNOWN, token);
+                    return Token(TokenType::UNKNOWN, lexeme);
                 }
             }
         }
         //if there is only one character (as in it didn't go through the for loop), gives it the proper state 
         if(state == 2){
-            return Token(TokenType::INTEGER, token);
+            return Token(TokenType::INTEGER, lexeme);
         }
         else if (state == 4) {
-            return Token(TokenType::REAL, token);
+            return Token(TokenType::REAL, lexeme);
         }
         else {
-            return Token(TokenType::UNKNOWN, token);
+            return Token(TokenType::UNKNOWN, lexeme);
         }
     }
 };
