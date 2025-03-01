@@ -149,3 +149,4 @@ Output:
                    keyword                            return
                    separator                          ;
                    separator                          $$
+                   unknown                            .

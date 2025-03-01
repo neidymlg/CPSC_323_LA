@@ -8,6 +8,7 @@
 
 using namespace std;
 
+//token types, used for categorizing 
 enum class TokenType {
     KEYWORD,
     IDENTIFIER,
@@ -18,11 +19,13 @@ enum class TokenType {
     UNKNOWN
 };
 
+//state types, used to skip comments
 enum State {
     START,
     COMMENT
 };
 
+//Structure used to store token types and tokens, will be returned to the main function
 struct Token {
     TokenType type;
     std::string value;
@@ -30,11 +33,11 @@ struct Token {
 };
 
 class LexicalAnalyzer {
-    unordered_map<string, TokenType> keywords;
-    vector<Token> tokens;
-    char myChar;
+    unordered_map<string, TokenType> keywords; //to store keywords
+    char myChar; //to get current character
     State state = State::START;
     
+    //fsm for identifiers, int, and real
     int identifier[6][3] = {
         {2, 6, 6},
         {3, 4, 5},
@@ -53,6 +56,7 @@ class LexicalAnalyzer {
     };
 
 public:
+    //initalizes all keyword
     LexicalAnalyzer() {
         keywords["integer"] = TokenType::KEYWORD;
         keywords["real"] = TokenType::KEYWORD;
@@ -71,39 +75,21 @@ public:
         keywords["break"] = TokenType::KEYWORD;
     }
 
-
-    void printTokens() {
-        for (Token token : tokens) {
-            string type;
-            switch (token.type) {
-            case TokenType::KEYWORD:
-                type = "KEYWORD";
-                break;
-            case TokenType::IDENTIFIER:
-                type = "IDENTIFIER";
-                break;
-            case TokenType::INTEGER:
-                type = "INTEGER";
-                break;
-            case TokenType::REAL:
-                type = "REAL";
-                break;
-            case TokenType::OPERATOR:
-                type = "OPERATOR";
-                break;
-            case TokenType::SEPARATOR:
-                type = "SEPARATOR";
-                break;
-            default:
-                type = "UNKNOWN";
-                break;
-            }
-            cout << "<" << type << ", " << token.value << ">" << endl;
-        }
-    }
-
+    //reads all tokens, sends to the FSM functions to be categorized (return Token types)
+    //or categorizes (returns token types) themselves
     Token lexer(FILE* filePointer) {
 
+        //gets first chatacter
+        // 1. if there is a number or punctuation, sends it so it can be categorized into int/real
+        // 2. if there is a letter, sends it so it can be categorized into an identifier
+        // 3. if there is an operator, checks if it is a double operator (<=, >=, etc) or not and categorizes it 
+        // 4. if there is a seperator, sends it so it can be categorized into an seperator
+        // 5. if there are two $, sends it so it can be categorized into an seperator
+        // 6. if there is a [, changes it's state to comment so we can skip it
+        // 7. if there is a whitespace, continues without categorizing (skips)
+        // 8. if it is none of the above, categorizes as unknown
+
+        //inside comment state, checks if we are at ] so it can go back to start state
         while ((myChar = getc(filePointer)) != EOF) {
             switch (state) {
             case State::START:
@@ -155,29 +141,42 @@ public:
                 break;
             }
         }
+        //in case there is an error, outputs nothing
         return Token(TokenType::UNKNOWN, "");
     }
 
 private:
 
+    //checks operator
     bool isOperator(char c) {
         return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>' || c == '!';
     }
 
+    //checks seperator
     bool isSeparator(char c) {
         return c == ';' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}';
     }
 
+    //checks whitespace
     bool isWhiteSpace(char c){
         return c == ' ' || c == '\n' || c=='\t';
     }
 
+    //categorizes fsm identifier
     Token FSM_identifier(FILE* filePointer) {
         string lexeme;
     
+        //gets first string and starts as state 2 (since we went from 1 -> letter -> 2)
         lexeme += tolower(myChar);
         int state = 2;
 
+        //gets next character
+        //1. if letter, adds into lexeme, changes state 
+        //2. if digit, adds into lexeme, changes state 
+        //3. if _, adds into lexeme, changes state 
+        //4. if whitespace/operator/seperator, puts char back to buffer, checks if it is a keyword
+        //4. , identifier, or invalid combination and categorizes
+        //5. if it is an invalid symbol, adds into lexeme, changes state to 6 to symbolize it is invalid
         while ((myChar = getc(filePointer)) != EOF) {
             if(isalpha(myChar)){
                 myChar = tolower(myChar);
@@ -211,16 +210,21 @@ private:
             }
         }
 
+        //if there is only one letter, returns it as an identifier
         return Token(TokenType::IDENTIFIER, lexeme);
     }
     
 
+    //categorizes fsm integer or real
     Token FSM_int_real(FILE* filePointer) {
         string token;
         int state = 1;
 
+        //adds first character into token
         token += myChar;
 
+        //1. if first character is ., changes state (this is an invalid state)
+        //2. if first character is digit, changes state
         if (myChar == '.') {
             state = int_union_real[state - 1][1];
         }
@@ -228,6 +232,11 @@ private:
             state = int_union_real[state - 1][0];
         }
 
+        //gets next character using the while loop
+        //1. if character is a digit, adds into token, changes state
+        //2. if character is a ., adds into token, changes state
+        //3. if character isn't any of the above, puts char back to buffer, checks if it state 2 and categorizes
+        //3. into integer, state 4 for real, and if it is not any of these states, then it is unknown (invalid)
         while ((myChar = getc(filePointer)) != EOF) {
             if (isdigit(myChar)) {
                 token += myChar;
@@ -250,11 +259,22 @@ private:
                 }
             }
         }
-        return Token(TokenType::INTEGER, token);
+        //if there is only one character (as in it didn't go through the for loop), gives it the proper state 
+        if(state == 2){
+            return Token(TokenType::INTEGER, token);
+        }
+        else if (state == 4) {
+            return Token(TokenType::REAL, token);
+        }
+        else {
+            return Token(TokenType::UNKNOWN, token);
+        }
     }
 };
 
 int main() {
+
+    //get's file name and reads file
     string FILE_NAME;
     cout << "Please enter the file name (LA_input_1.txt , LA_input_2.txt, LA_input_3.txt): ";
     getline(cin, FILE_NAME);
@@ -266,9 +286,11 @@ int main() {
         return 1;
     }
 
+    //initializes class and vector
     LexicalAnalyzer la;
     std::vector<Token> tokens;
 
+    //calls lexer and pushes tokens inside the vector
     while (true) {
         Token token = la.lexer(filePointer);
         if (token.value.empty()) {
@@ -277,9 +299,10 @@ int main() {
         tokens.push_back(token);
     }
     
-
+    //closes file
     fclose(filePointer);
 
+    //get's file name and writes to file
     cout << "Please enter the output file name (LA_output_1.txt , LA_output_2.txt, LA_output_3.txt): ";
     string outputFileName;
     getline(cin, outputFileName);
@@ -294,6 +317,7 @@ int main() {
     outFile << "                    token                             lexeme\n";
     outFile << "------------------------------------------------------------\n";
 
+    //outputs using the vector
     for (size_t i = 0; i < tokens.size(); ++i) {
         string type;
         switch (tokens[i].type) {
