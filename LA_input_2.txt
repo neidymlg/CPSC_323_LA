@@ -1,0 +1,22 @@
+$$  
+function f (x integer, y integer)  
+{  
+    return x * -(y - 2) + !1;  
+}  
+$$  
+integer a = -5, b = 3, c;  
+c += a; [** Integral to equaton 2 **]  
+c,a,EXAMPLE = .2, 4., 40000;
+print(a, c);  
+$$  
+while (a-- > 0)  
+{  
+    if (!(b - c))  
+        break;  
+    c = c * -1 + (b--);  
+}  
+endwhile  
+ex_1 nonexample1@_ ex_2 @ ex3/ex4 nonexample2.
+$$  
+return;  
+$$  

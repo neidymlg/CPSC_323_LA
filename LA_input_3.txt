@@ -1,0 +1,11 @@
+integer 2value = 100;  [** Variable cannot start with a digit **]  
+integer num! = 50;  [** Invalid character `!` in variable name **]  
+integer x = 4..5;  [** Double decimal points in a number **]  
+integer y = .;  [** Standalone decimal point **]  
+$$  
+if x => 10  [** Invalid `=>` instead of `>=` **]  
+    print(x;  [** Missing closing parenthesis **]  
+$$  
+integer val = -+-5;  [** Invalid double unary operator `-+-` **]  
+integer missingOp = 9 7;  [** Missing operator between numbers **]  
+$$   

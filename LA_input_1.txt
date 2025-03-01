@@ -9,9 +9,10 @@ function computeValue (x integer, y real)
     {  
         return x * (y / 3.14) - (x % 7);  
     }  
+    endif
 }  
 $$  
-integer a, b, c; [* Variable declarations *]  
+integer a, B, c; [* Variable declarations *]  
 real result;  
 $$  
 scan (a, b, c);  
@@ -25,6 +26,7 @@ while (a < b)
         break;  
     }  
     a = a + c;  
+    a %= b;
 }  
 endwhile  
 $$  
@@ -32,7 +34,7 @@ string text = a;
 print (text);  
 $$  
 boolean flag = true;  
-if (b <= 5 && a != 0)
+if (b <= 5)  
 {  
     print (b);  
 }  

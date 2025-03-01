@@ -22,18 +22,6 @@ enum State {
     COMMENT
 };
 
-// states
-enum class LexerState {
-    START,
-    KEYWORD,
-    IDENTIFIER,
-    INTEGER,
-    REAL,
-    OPERATOR,
-    SEPARATOR,
-    UNKNOWN
-};
-
 struct Token {
     TokenType type;
     std::string value;
@@ -46,6 +34,15 @@ class LexicalAnalyzer {
     char myChar;
     State state = State::START;
     
+    int identifier[6][3] = {
+        {2, 6, 6},
+        {3, 4, 5},
+        {3, 4, 5},
+        {3, 4, 5},
+        {3, 4, 5},
+        {6, 6, 6}
+    };
+
     int int_union_real[5][2] = {
         {2, 5},
         {2, 3},
@@ -69,6 +66,8 @@ public:
         keywords["boolean"] = TokenType::KEYWORD;
         keywords["true"] = TokenType::KEYWORD;
         keywords["false"] = TokenType::KEYWORD;
+        keywords["return"] = TokenType::KEYWORD;
+        keywords["break"] = TokenType::KEYWORD;
     }
 
 
@@ -103,7 +102,7 @@ public:
     }
 
     Token lexer(FILE* filePointer) {
-        string token;
+
         while ((myChar = getc(filePointer)) != EOF) {
             switch (state) {
             case State::START:
@@ -140,7 +139,7 @@ public:
                 else if (myChar == '[') {
                     state = State::COMMENT;
                 }
-                else if (myChar == ' ' || myChar == '\n' || myChar == '\t') {
+                else if (isWhiteSpace(myChar)) {
                     continue;
                 }
                 else {
@@ -168,25 +167,46 @@ private:
         return c == ';' || c == ',' || c == '(' || c == ')' || c == '{' || c == '}';
     }
 
+    bool isWhiteSpace(char c){
+        return c == ' ' || c == '\n' || c=='\t';
+    }
+
     Token FSM_identifier(FILE* filePointer) {
         string lexeme;
     
         lexeme += tolower(myChar);
+        int state = 2;
 
         while ((myChar = getc(filePointer)) != EOF) {
             if(isalpha(myChar)){
                 myChar = tolower(myChar);
                 lexeme += myChar;
+                state = identifier[state-1][0];
             }
-            else if(isdigit(myChar) || myChar == '_'){
+            else if(isdigit(myChar)){
                 lexeme += myChar;
+                state = identifier[state-1][1];
             }
-            else {
+            else if(myChar == '_'){
+                lexeme += myChar;
+                state = identifier[state-1][2];
+            }
+            else if(isWhiteSpace(myChar) || isOperator(myChar) || isSeparator(myChar)){
                 ungetc(myChar, filePointer);
                 if (keywords.find(lexeme) != keywords.end()) {
                     return Token(TokenType::KEYWORD, lexeme);
                 }
-                return Token(TokenType::IDENTIFIER, lexeme);
+                else if (state > 1 && state < 6){
+                    return Token(TokenType::IDENTIFIER, lexeme);
+                }
+                else{
+                    return Token(TokenType::UNKNOWN, lexeme);
+                }
+            }
+            else {
+                lexeme += myChar;
+                state = 6;
+             
             }
         }
 
@@ -219,23 +239,25 @@ private:
             else {
                 ungetc(myChar, filePointer);
                 if (state == 2) {
-                    tokens.push_back(Token(TokenType::INTEGER, token));
+                    return Token(TokenType::INTEGER, token);
                 }
                 else if (state == 4) {
-                    tokens.push_back(Token(TokenType::REAL, token));
+                    return Token(TokenType::REAL, token);
                 }
                 else {
-                    tokens.push_back(Token(TokenType::UNKNOWN, token));
+                    return Token(TokenType::UNKNOWN, token);
                 }
-                break;
             }
         }
-        return tokens.back();
+        return Token(TokenType::INTEGER, token);
     }
 };
 
 int main() {
-    string FILE_NAME = "LA_input_1.txt";
+    string FILE_NAME;
+    cout << "Please enter the file name (LA_input_1.txt , LA_input_2.txt, LA_input_3.txt): ";
+    getline(cin, FILE_NAME);
+
     FILE* filePointer = fopen(FILE_NAME.c_str(), "r");
 
     if (!filePointer) {
