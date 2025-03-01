@@ -4,6 +4,7 @@
 #include <vector>
 #include <cctype> //for tolower
 #include <iomanip>
+#include <fstream> //for output files
 
 using namespace std;
 
@@ -279,9 +280,19 @@ int main() {
 
     fclose(filePointer);
 
-    std::cout << "\nOutput:\n";
-    std::cout << "                    token                             lexeme\n";
-    std::cout << "------------------------------------------------------------\n";
+    cout << "Please enter the output file name (LA_output_1.txt , LA_output_2.txt, LA_output_3.txt): ";
+    string outputFileName;
+    getline(cin, outputFileName);
+
+    ofstream outFile(outputFileName);
+    if (!outFile) {
+        std::cerr << "Error opening output file for writing" << std::endl;
+        return 1;
+    }
+
+    outFile << "\nOutput:\n";
+    outFile << "                    token                             lexeme\n";
+    outFile << "------------------------------------------------------------\n";
 
     for (size_t i = 0; i < tokens.size(); ++i) {
         string type;
@@ -302,7 +313,7 @@ int main() {
             break;
         }
 
-        std::cout << "                   " << std::left << std::setw(35) << type << tokens[i].value << std::endl;
+        outFile << "                   " << left << setw(35) << type << tokens[i].value << endl;
     }
 
     return 0;
